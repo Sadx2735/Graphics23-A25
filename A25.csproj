@@ -9,4 +9,14 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="reference\Algorithm.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="reference\Algorithm.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

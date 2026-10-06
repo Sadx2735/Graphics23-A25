@@ -34,8 +34,33 @@ class MyWindow : Window {
       var pt = e.GetPosition (this);
       Points.Add (((int)pt.X, (int)pt.Y));
       if (Points.Count == 1) return;
-      DrawLineNaive ();
+      DrawLine ();
       Points.Clear ();
+   }
+
+   // Reference : ../reference/Algorithm.png
+   void DrawLine () {
+      var (x0, y0) = Points[0];
+      var (x1, y1) = Points[1];
+      bool steep = Math.Abs (y1 - y0) > Math.Abs (x1 - x0);
+      if (steep) (x0, y0, x1, y1) = (y0, x0, y1, x1);
+      if (x1 < x0) (x0, y0, x1, y1) = (x1, y1, x0, y0);
+      var (dx, dy) = (x1 - x0, Math.Abs (y1 - y0));
+      int step = y0 < y1 ? 1 : -1;
+      int p = 2 * dy - dx, y = y0;
+      int dxw = mBmp.PixelWidth, dyh = mBmp.PixelHeight;
+      try {
+         mBmp.Lock ();
+         mBase = mBmp.BackBuffer;
+         for (int x = x0; x <= x1; x++) {
+            if (steep) SetPixel (y, x, 255); else SetPixel (x, y, 255);
+            if (p >= 0) { y += step; p -= 2 * dx; }
+            p += 2 * dy;
+         }
+         mBmp.AddDirtyRect (new Int32Rect (0, 0, dxw, dyh));
+      } finally {
+         mBmp.Unlock ();
+      }
    }
 
    void DrawLineNaive () {
