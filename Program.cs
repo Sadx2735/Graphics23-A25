@@ -3,10 +3,12 @@ using System.Windows.Media;
 using System.Windows.Input;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using System.Diagnostics;
 
 namespace A25;
 
 class MyWindow : Window {
+   List<(int, int)> Points = [];
    public MyWindow () {
       Width = 800; Height = 600;
       Left = 50; Top = 50;
@@ -24,8 +26,37 @@ class MyWindow : Window {
       mStride = mBmp.BackBufferStride;
       image.Source = mBmp;
       Content = image;
+      this.MouseDown += CollectPoint;
+      //DrawMandelbrot (-0.5, 0, 1);
+   }
 
-      DrawMandelbrot (-0.5, 0, 1);
+   void CollectPoint (object sender, MouseButtonEventArgs e) {
+      var pt = e.GetPosition (this);
+      Points.Add (((int)pt.X, (int)pt.Y));
+      if (Points.Count == 1) return;
+      DrawLineNaive ();
+      Points.Clear ();
+   }
+
+   void DrawLineNaive () {
+      var (x0, y0) = Points[0];
+      var (x1, y1) = Points[1];
+      var (dx, dy) = (x1 - x0, y1 - y0);
+      double n = Math.Max (Math.Abs (dx), Math.Abs (dy));
+      int dxw = mBmp.PixelWidth, dyh = mBmp.PixelHeight;
+      try {
+         mBmp.Lock ();
+         mBase = mBmp.BackBuffer;
+         if (n == 0) SetPixel (x0, y0, 255);
+         else {
+            var (xs, ys) = (dx / (double)n, dy / (double)n);
+            for (int i = 0; i <= n; i++)
+               SetPixel ((int)(x0 + (xs * i)), (int)(y0 + (ys * i)), 255);
+         }
+         mBmp.AddDirtyRect (new Int32Rect (0, 0, dxw, dyh));
+      } finally {
+         mBmp.Unlock ();
+      }
    }
 
    void DrawMandelbrot (double xc, double yc, double zoom) {
